@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackIntern: Log in</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center;
+           font-family: system-ui, sans-serif; background: #f7f7fb; color: #1d1d27; }
+    main { width: min(380px, 92vw); background: #fff; padding: 1.5rem; border-radius: 10px;
+           border: 1px solid #d9d9e3; }
+    label { display: block; margin-top: 1rem; font-weight: 600; }
+    input { width: 100%; padding: .6rem; margin-top: .25rem; border: 1px solid #d9d9e3;
+            border-radius: 6px; font: inherit; }
+    input[aria-invalid="true"] { border-color: #c92a2a; }
+    button { font: inherit; cursor: pointer; }
+    #submit-btn { width: 100%; margin-top: 1.25rem; padding: .7rem; border: 0; border-radius: 6px;
+                  background: #3b5bdb; color: #fff; font-weight: 600; }
+    #submit-btn:disabled { opacity: .6; cursor: wait; }
+    #switch-btn { background: none; border: 0; color: #3b5bdb; text-decoration: underline; padding: 0; }
+    .field-error, .form-error { color: #c92a2a; font-size: .875rem; min-height: 1.2em; margin: .25rem 0 0; }
+    .hint { color: #5b5b6b; font-size: .875rem; }
+    :focus-visible { outline: 3px solid #3b5bdb; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="form-title">Log in</h1>
+    <form id="auth-form" novalidate>
+      <p class="form-error" id="form-error" role="alert"></p>
+
+      <label for="username">Username</label>
+      <input id="username" name="username" autocomplete="username" aria-describedby="err-username">
+      <p class="field-error" id="err-username"></p>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password"
+             aria-describedby="err-password">
+      <p class="field-error" id="err-password"></p>
+      <p class="hint" id="pw-hint" hidden>At least 8 characters.</p>
+
+      <button type="submit" id="submit-btn">Log in</button>
+    </form>
+    <p>
+      <span id="switch-text">No account yet?</span>
+      <button type="button" id="switch-btn">Register</button>
+    </p>
+  </main>
+  <script src="/js/login.js"></script>
+</body>
+</html>
