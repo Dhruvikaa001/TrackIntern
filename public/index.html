@@ -1,5 +1,40 @@
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>TrackIntern</title></head>
-<body><h1>TrackIntern works</h1></body>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrackIntern</title>
+  <link rel="stylesheet" href="css/pico.grey.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class ="container">
+    <h1>TrackIntern</h1>
+
+    <!-- Hidden until the user is logged in (views.js toggles the hidden attribute) -->
+    <nav id="main-nav" aria-label="Main navigation" hidden>
+      <button type="button" data-view="board">Board</button>
+      <button type="button" data-view="table">Table</button>
+      <button type="button" data-view="stats">Stats</button>
+      <!-- Only shown for admins (the server still checks every permission) -->
+      <button type="button" data-view="admin" id="nav-admin" hidden>Admin</button>
+      <button type="button" id="logout-btn">Log out</button>
+    </nav>
+  </header>
+
+  <!-- Global error banner (server error + Retry button), filled by JS -->
+  <div id="error-banner" role="alert"></div>
+
+  <!-- The container whose content is replaced when switching views -->
+  <main id="view" class="container"></main>
+
+  <!-- Modals (add/edit form, confirm delete) are created here by JS -->
+  <div id="modal-root"></div>
+
+  <!-- Toasts are created here by JS; aria-live so screen readers announce them -->
+  <div id="toast-root" aria-live="polite"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
 </html>
