@@ -1,13 +1,39 @@
 
-.container {
+main.container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    max-width: 100%;
 }
 
 form{
     max-width: 400px;
     width: 100%;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(150px, 1fr));
+    gap: 0.5rem;
+    overflow-x: auto;
+}
+
+.badge-overdue {
+    margin-left: 0.5rem;
+    color: red;
+    font-weight: bold;
+}
+
+.column {
+    background-color: #f0f0f0;
+    padding: 1rem;
+    border-radius: 5px;
+    min-height: 300px;
+}
+
+.card{
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
 }
