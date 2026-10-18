@@ -1,6 +1,8 @@
 import { STAGES } from "./state.js";
+import { get, post } from "./api.js";
+import { showToast } from "./toast.js";
 
-export function openApplicationDialog() {
+export async function openApplicationDialog(onSaved) {
     const dialog = document.createElement('dialog');
     const heading = document.createElement('h2');
     heading.textContent = 'Add application';
@@ -103,6 +105,7 @@ export function openApplicationDialog() {
     notesArea.name = 'notes';
     notesArea.required = false;
     notesArea.maxLength = 2000;
+
     const notesError = document.createElement('small');
 
     form.append(companyLabel, companyField, companyError, roleLabel, roleField, roleError, stageLabel, stageField, stageError, priorityLabel, priorityField, priorityError, deadlineLabel, deadlineField, deadlineError, linkLabel, linkField, linkError, notesLabel, notesArea, notesError);
@@ -120,6 +123,72 @@ export function openApplicationDialog() {
 
     form.append(cancelBtn, saveBtn);
 
+    const formError = document.createElement('p');
+    formError.setAttribute('role', 'alert');
+    form.prepend(formError);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const body = {
+            company_id: Number(companyField.value),
+            role_title: roleField.value.trim(),
+            stage: stageField.value,
+            priority: priorityField.value,
+            deadline: deadlineField.value,
+            link: linkField.value.trim(),
+            notes: notesArea.value
+        };
+
+        const errorFields = {
+            company_id: companyError,
+            role_title: roleError,
+            stage: stageError,
+            priority: priorityError,
+            deadline: deadlineError,
+            link: linkError,
+            notes: notesError
+        };
+
+        formError.textContent = '';
+        for (const el of Object.values(errorFields)) {
+            el.textContent = '';
+        }
+
+        let valid = true;
+        if (!body.company_id) {
+            companyError.textContent = 'Please choose a company.';
+            valid = false;
+        }
+        if (!body.role_title) {
+            roleError.textContent = 'Role title is required.';
+            valid = false;
+        }
+        if (!valid) {
+            return;
+        }
+
+        saveBtn.disabled = true;
+        try {
+            await post('/api/applications', body);
+            dialog.close();
+            showToast('Application saved');
+            onSaved();
+        } catch (error) {
+            if (error.fieldErrors) {
+                for (const [field, message] of Object.entries(error.fieldErrors)) {
+                    (errorFields[field] || formError).textContent = message;
+                }
+            } else if (error.status === 0) {
+                formError.textContent = 'Network error. Please check your connection.';
+            } else {
+                formError.textContent = error.message || 'An unknown error occurred.';
+            }
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
     const article = document.createElement('article');
     article.append(heading, form);
     dialog.append(article);
@@ -130,4 +199,20 @@ export function openApplicationDialog() {
     dialog.addEventListener('close', function () {
         dialog.remove();
     });
+
+    companyPlaceholder.textContent = 'Loading companies...';
+    try {
+        const companies = await get('/api/companies');
+        for (const company of companies) {
+            const option = document.createElement('option');
+            option.value = company.id;
+            option.textContent = company.name;
+            companyField.append(option);
+        }
+        companyPlaceholder.textContent = 'Choose a company';
+    } catch (error) {
+        companyPlaceholder.textContent = 'Choose a company';
+        companyError.textContent = 'Could not load companies. Please try again.';
+    }
+
 }

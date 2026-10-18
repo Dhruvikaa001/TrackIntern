@@ -14,7 +14,7 @@ export async function renderBoard(container) {
     addBtn.textContent = '+ Add application';
     container.append(addBtn);
     addBtn.addEventListener('click', function(){
-        openApplicationDialog();
+        openApplicationDialog(() => renderBoard(container));
     });
     
 

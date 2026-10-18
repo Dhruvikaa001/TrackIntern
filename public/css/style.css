@@ -1,4 +1,3 @@
-
 main.container {
     display: flex;
     flex-direction: column;
@@ -8,7 +7,7 @@ main.container {
     max-width: 100%;
 }
 
-form{
+form {
     max-width: 400px;
     width: 100%;
 }
@@ -34,8 +33,23 @@ form{
     min-height: 300px;
 }
 
-.card{
+.card {
     font-size: 0.75rem;
     overflow-wrap: anywhere;
 }
 
+#toast-root {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    background-color: #1f2937;
+    color: #fff;
+}
