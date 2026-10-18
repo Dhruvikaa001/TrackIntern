@@ -83,7 +83,7 @@ export function renderLogin(container, onLoginSuccess) {
                 onLoginSuccess(); // Call the callback function to handle successful login
                 console.log("Login successful:", user);
             } catch (error) {
-                if (error.status === 400 && error.fieldErrors) {
+                if ((error.status === 400 || error.status === 409) && error.fieldErrors) {
                     usernameError.textContent = error.fieldErrors.username || "";
                     passwordError.textContent = error.fieldErrors.password || "";
                 } else if (error.status === 0) {
@@ -99,7 +99,7 @@ export function renderLogin(container, onLoginSuccess) {
     });
 }
 
-
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,30}$/;
 export function renderRegister(container, onRegisterSuccess) {
     container.replaceChildren(); // clear the container otherwise the form will be appended multiple times
     const h2 = document.createElement("h2");
@@ -163,8 +163,8 @@ export function renderRegister(container, onRegisterSuccess) {
         if (!username) {
             usernameError.textContent = "Username is required.";
             valid = false;
-        } else if (username.length < 3 || username.length > 30) {
-            usernameError.textContent = "Username must be between 3 and 30 characters.";
+        } else if (!USERNAME_PATTERN.test(username)) {
+            usernameError.textContent = "Username must be between 3 and 30 characters, numbers and underscore only.";
             valid = false;
         }
 
@@ -195,7 +195,7 @@ export function renderRegister(container, onRegisterSuccess) {
             onRegisterSuccess(); // Call the callback function to handle successful registration
 
         } catch (error) {
-            if (error.status === 400 && error.fieldErrors) {
+            if ((error.status === 400 || error.status === 409) && error.fieldErrors) {
                 usernameError.textContent = error.fieldErrors.username || "";
                 passwordError.textContent = error.fieldErrors.password || "";
             } else if (error.status === 0) {

@@ -1,12 +1,22 @@
 //Spalten, Karten, Drag-and-Drop
 
 import { STAGES, state, loadApplications } from "./state.js";
+import { openApplicationDialog } from "./dialog.js";
 
 export async function renderBoard(container) {
     container.replaceChildren();
     const h2 = document.createElement("h2");
     h2.textContent = "Board";
     container.appendChild(h2);
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.textContent = '+ Add application';
+    container.append(addBtn);
+    addBtn.addEventListener('click', function(){
+        openApplicationDialog();
+    });
+    
 
     const board = document.createElement("div");
     board.classList.add("board");

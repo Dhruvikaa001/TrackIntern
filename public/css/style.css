@@ -22,8 +22,9 @@ form{
 
 .badge-overdue {
     margin-left: 0.5rem;
-    color: red;
+    color: #a1230f;
     font-weight: bold;
+    background-color: #f0f0f0;
 }
 
 .column {
@@ -37,3 +38,4 @@ form{
     font-size: 0.75rem;
     overflow-wrap: anywhere;
 }
+

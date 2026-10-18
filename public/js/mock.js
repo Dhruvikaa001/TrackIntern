@@ -115,7 +115,7 @@ function setSession(user) {
 
 const ok = (data, status = 200) => ({ status, data });
 const fail = (status, error) => ({ status, data: { error } });
-const invalid = (errors) => ({ status: 400, data: { errors } });
+const invalid = (errors) => ({ status: 400, data: { error: "Validation failed", fields: errors } });
 
 const publicUser = (u) => ({ id: u.id, username: u.username, role: u.role });
 
