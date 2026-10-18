@@ -1,7 +1,8 @@
 //Spalten, Karten, Drag-and-Drop
 
-import { STAGES, state, loadApplications } from "./state.js";
-import { openApplicationDialog } from "./dialog.js";
+import { STAGES, state, loadApplications, moveApplication, deleteApplication } from "./state.js";
+import { openApplicationDialog, openConfirmDialog } from "./dialog.js";
+import { showToast } from "./toast.js";
 
 export async function renderBoard(container) {
     container.replaceChildren();
@@ -13,10 +14,10 @@ export async function renderBoard(container) {
     addBtn.type = 'button';
     addBtn.textContent = '+ Add application';
     container.append(addBtn);
-    addBtn.addEventListener('click', function(){
+    addBtn.addEventListener('click', function () {
         openApplicationDialog(() => renderBoard(container));
     });
-    
+
 
     const board = document.createElement("div");
     board.classList.add("board");
@@ -65,7 +66,7 @@ function renderColumns(columns) {
         columns[stage.value].replaceChildren(); // Clear existing cards in the column
     }
     for (const app of state.applications) {
-        columns[app.stage].appendChild(renderCard(app)); // Append the card to the appropriate column based on its stage
+        columns[app.stage].appendChild(renderCard(app, () => renderColumns(columns)));
     }
     for (const stage of STAGES) {
         if (columns[stage.value].children.length === 0) {
@@ -76,7 +77,7 @@ function renderColumns(columns) {
     }
 }
 
-function renderCard(application) {
+function renderCard(application, onMove) {
     const card = document.createElement("div");
     card.classList.add("card");
     card.dataset.applicationId = application.id;
@@ -106,5 +107,44 @@ function renderCard(application) {
         }
         card.appendChild(deadline);
     }
+
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', 'Move to stage');
+        for (const stage of STAGES) {
+        const option = document.createElement('option');
+        option.value = stage.value;
+        option.textContent = stage.label;
+        select.append(option);
+    }
+    select.value = application.stage;
+    card.append(select);
+
+    select.addEventListener('change', async function () {
+        try {
+            await moveApplication(application.id, select.value);
+            const label = STAGES.find((s) => s.value === select.value).label;
+            onMove();
+            showToast(`Moved to ${label}`);
+        } catch (error) {
+            select.value = application.stage;
+            showToast(error.message);
+        }
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', function(){
+        openConfirmDialog(`Delete ${application.company_name}: ${application.role_title}?`, async() => {
+            try{
+                await deleteApplication(application.id);
+                onMove();
+                showToast('Application deleted');
+            }catch(error){
+                showToast(errorl.message);
+            }
+        });
+    });
+    card.append(deleteBtn);
     return card;
 }

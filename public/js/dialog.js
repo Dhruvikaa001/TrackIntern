@@ -216,3 +216,38 @@ export async function openApplicationDialog(onSaved) {
     }
 
 }
+
+export function openConfirmDialog(message, onConfirm) {
+    const dialog = document.createElement('dialog');
+    const article = document.createElement('article');
+
+    const paragraph = document.createElement('p');
+    paragraph.textContent = message;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.autofocus = true;
+    cancelBtn.addEventListener('click', function () {
+        dialog.close();
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.addEventListener('click', async function () {
+        deleteBtn.disabled = true;
+        await onConfirm();
+        dialog.close();
+    });
+
+    article.append(paragraph, cancelBtn, deleteBtn);
+    dialog.append(article);
+
+    const modalRoot = document.querySelector('#modal-root');
+    modalRoot.append(dialog);
+    dialog.showModal();
+    dialog.addEventListener('close', function () {
+        dialog.remove();
+    });
+}
