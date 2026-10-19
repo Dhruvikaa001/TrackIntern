@@ -71,3 +71,37 @@ form {
 .column.drag-over {
     outline: 2px dashed #555;
 }
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 1rem 0;
+    padding: 200px;
+}
+
+.error-banner {
+    border: 1px solid #a1230f;
+    border-left-width: 6px;
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+}
+
+.error-banner p {
+    margin: 0;
+}
+
+.loading-message {
+    margin: 1rem 0;
+}
+
+.error-banner button {
+    margin: 0;
+}

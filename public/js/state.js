@@ -8,6 +8,37 @@ export const state = {
     currentApplication: null
 };
 
+export const filters = {
+    q: '',
+    priority: '',
+    sort: 'default'
+};
+
+export function getVisibleApplication() {
+    //copy array so that the state does not change
+    let list = [...state.applications];
+    const query = filters.q.trim().toLowerCase();
+    //if there is a search text only company and role stay
+    if (query !== '') {
+        list = list.filter((a) =>
+            a.company_name.toLowerCase().includes(query) ||
+            a.role_title.toLowerCase().includes(query)
+        );
+    }
+    //if there is a prio only that one stays
+    if (filters.priority !== '') {
+        list = list.filter((a) => a.priority === filters.priority);
+    }
+    //sort by deadline or company name
+    if (filters.sort === 'deadline') {
+        list.sort((a, b) => (a.deadline || '9999-12-31').localeCompare(b.deadline || '9999-12-31'));
+    } else if (filters.sort === 'company') {
+        list.sort((a, b) => a.company_name.localeCompare(b.company_name));
+    }
+
+    return list;
+}
+
 export const STAGES = [
     { value: "wishlist", label: "Wishlist" },
     { value: "applied", label: "Applied" },
