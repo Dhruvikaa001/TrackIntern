@@ -1,8 +1,8 @@
 import { STAGES } from "./state.js";
-import { get, post } from "./api.js";
+import { get, post, patch } from "./api.js";
 import { showToast } from "./toast.js";
 
-export async function openApplicationDialog(onSaved) {
+export async function openApplicationDialog(onSaved, application = null) {
     const dialog = document.createElement('dialog');
     const heading = document.createElement('h2');
     heading.textContent = 'Add application';
@@ -135,8 +135,8 @@ export async function openApplicationDialog(onSaved) {
             role_title: roleField.value.trim(),
             stage: stageField.value,
             priority: priorityField.value,
-            deadline: deadlineField.value,
-            link: linkField.value.trim(),
+            deadline: deadlineField.value || null,
+            link: linkField.value.trim() || null,
             notes: notesArea.value
         };
 
@@ -170,9 +170,16 @@ export async function openApplicationDialog(onSaved) {
 
         saveBtn.disabled = true;
         try {
-            await post('/api/applications', body);
+            if (application) {
+                delete body.company_id;
+                delete body.stage;
+                await patch(`/api/applications/${application.id}`, body);
+                showToast('Application updated');
+            } else {
+                await post('/api/applications', body);
+                showToast('Application saved');
+            }
             dialog.close();
-            showToast('Application saved');
             onSaved();
         } catch (error) {
             if (error.fieldErrors) {
@@ -193,6 +200,18 @@ export async function openApplicationDialog(onSaved) {
     article.append(heading, form);
     dialog.append(article);
 
+    if (application) {
+        heading.textContent = 'Edit application';
+        roleField.value = application.role_title;
+        priorityField.value = application.priority;
+        deadlineField.value = application.deadline ?? '';
+        linkField.value = application.link ?? '';
+        notesArea.value = application.notes ?? '';
+        companyField.disabled = true;
+        stageLabel.hidden = true;
+        stageField.hidden = true;
+    }
+
     const modalRoot = document.querySelector('#modal-root');
     modalRoot.append(dialog);
     dialog.showModal();
@@ -210,6 +229,11 @@ export async function openApplicationDialog(onSaved) {
             companyField.append(option);
         }
         companyPlaceholder.textContent = 'Choose a company';
+
+        if (application) {
+            companyField.value = application.company_id;
+        }
+
     } catch (error) {
         companyPlaceholder.textContent = 'Choose a company';
         companyError.textContent = 'Could not load companies. Please try again.';

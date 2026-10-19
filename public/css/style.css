@@ -23,19 +23,29 @@ form {
     margin-left: 0.5rem;
     color: #a1230f;
     font-weight: bold;
-    background-color: #f0f0f0;
+    background-color: var(--pico-card-background-color, #fff);;
+}
+
+.badge-soon {
+    margin-left: 0.5rem;
+    color: coral;
+    font-weight: bold;
+    background-color: var(--pico-card-background-color, #fff);
 }
 
 .column {
-    background-color: #f0f0f0;
-    padding: 1rem;
-    border-radius: 5px;
-    min-height: 300px;
+    background: var(--pico-card-sectioning-background-color, #f1f3f5);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
 }
 
 .card {
-    font-size: 0.75rem;
-    overflow-wrap: anywhere;
+    background: var(--pico-card-background-color, #fff);
+    border: 1px solid var(--pico-muted-border-color, #d0d5db);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    cursor: grab;
 }
 
 #toast-root {
@@ -52,4 +62,12 @@ form {
     border-radius: 0.5rem;
     background-color: #1f2937;
     color: #fff;
+}
+
+.card.dragging {
+    opacity: 0.5;
+}
+
+.column.drag-over {
+    outline: 2px dashed #555;
 }
