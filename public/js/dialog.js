@@ -25,6 +25,21 @@ export async function openApplicationDialog(onSaved, application = null) {
 
     const companyError = document.createElement('small');
 
+    const suggestBtn = document.createElement('button');
+    suggestBtn.type = 'button';
+    suggestBtn.className = 'secondary';
+    suggestBtn.textContent = 'Company not listed? Suggest it';
+    suggestBtn.addEventListener('click', function () {
+        openCompanyDialog((company) => {
+            const option = document.createElement('option');
+            option.value = company.id;
+            option.textContent = `${company.name} (pending)`;
+            companyField.append(option);
+            companyField.value = company.id;
+            companyError.textContent = '';
+        });
+    });
+
     const roleLabel = document.createElement('label');
     roleLabel.htmlFor = 'app-role';
     roleLabel.textContent = 'Role Title:';
@@ -108,7 +123,7 @@ export async function openApplicationDialog(onSaved, application = null) {
 
     const notesError = document.createElement('small');
 
-    form.append(companyLabel, companyField, companyError, roleLabel, roleField, roleError, stageLabel, stageField, stageError, priorityLabel, priorityField, priorityError, deadlineLabel, deadlineField, deadlineError, linkLabel, linkField, linkError, notesLabel, notesArea, notesError);
+    form.append(companyLabel, companyField, companyError, suggestBtn, roleLabel, roleField, roleError, stageLabel, stageField, stageError, priorityLabel, priorityField, priorityError, deadlineLabel, deadlineField, deadlineError, linkLabel, linkField, linkError, notesLabel, notesArea, notesError);
 
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancel';
@@ -210,6 +225,7 @@ export async function openApplicationDialog(onSaved, application = null) {
         companyField.disabled = true;
         stageLabel.hidden = true;
         stageField.hidden = true;
+        suggestBtn.hidden = true;
     }
 
     const modalRoot = document.querySelector('#modal-root');
@@ -266,6 +282,111 @@ export function openConfirmDialog(message, onConfirm) {
     });
 
     article.append(paragraph, cancelBtn, deleteBtn);
+    dialog.append(article);
+
+    const modalRoot = document.querySelector('#modal-root');
+    modalRoot.append(dialog);
+    dialog.showModal();
+    dialog.addEventListener('close', function () {
+        dialog.remove();
+    });
+}
+
+export function openCompanyDialog(onCreated) {
+    const dialog = document.createElement('dialog');
+    const heading = document.createElement('h2');
+    heading.textContent = 'Suggest a company';
+
+    const form = document.createElement('form');
+    form.noValidate = true;
+
+    const nameLabel = document.createElement('label');
+    nameLabel.htmlFor = 'company-name';
+    nameLabel.textContent = 'Company name:';
+
+    const nameField = document.createElement('input');
+    nameField.id = 'company-name';
+    nameField.name = 'name';
+    nameField.type = 'text';
+    nameField.required = true;
+    nameField.maxLength = 80;
+
+    const nameError = document.createElement('small');
+
+    const industryLabel = document.createElement('label');
+    industryLabel.htmlFor = 'company-industry';
+    industryLabel.textContent = 'Industry (optional):';
+
+    const industryField = document.createElement('input');
+    industryField.id = 'company-industry';
+    industryField.name = 'industry';
+    industryField.type = 'text';
+    industryField.maxLength = 100;
+
+    const industryError = document.createElement('small');
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.type = 'button';
+    cancelBtn.addEventListener('click', function () {
+        dialog.close();
+    });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.type = 'submit';
+
+    const formError = document.createElement('p');
+    formError.setAttribute('role', 'alert');
+
+    form.append(formError, nameLabel, nameField, nameError, industryLabel, industryField, industryError, cancelBtn, saveBtn);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const body = {
+            name: nameField.value.trim(),
+            industry: industryField.value.trim() || null
+        };
+
+        const errorFields = {
+            name: nameError,
+            industry: industryError
+        };
+
+        formError.textContent = '';
+        for (const el of Object.values(errorFields)) {
+            el.textContent = '';
+        }
+
+        if (body.name.length < 2) {
+            nameError.textContent = 'Please enter a company name (at least 2 characters).';
+            return;
+        }
+
+        saveBtn.disabled = true;
+        try {
+            const company = await post('/api/companies', body);
+            dialog.close();
+            showToast('Company suggested. An admin will review it.');
+            onCreated(company);
+        } catch (error) {
+            if (error.fieldErrors) {
+                for (const [field, message] of Object.entries(error.fieldErrors)) {
+                    (errorFields[field] || formError).textContent = message;
+                }
+            } else if (error.status === 0) {
+                formError.textContent = 'Network error. Please check your connection.';
+            } else {
+                formError.textContent = error.message || 'An unknown error occurred.';
+            }
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    const article = document.createElement('article');
+    article.append(heading, form);
     dialog.append(article);
 
     const modalRoot = document.querySelector('#modal-root');
