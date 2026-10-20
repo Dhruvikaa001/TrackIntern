@@ -66,3 +66,13 @@ export async function deleteApplication(id) {
     await del(`/api/applications/${id}`);
     state.applications = state.applications.filter((a) => a.id !== id);
 }
+
+export async function loadApplicationDetails(id) {
+    return await get(`/api/applications/${id}`);
+}
+
+// "oa" -> "Online Assessment"
+export function stageLabel(value) {
+    const stage = STAGES.find((s) => s.value === value);
+    return stage ? stage.label : value;
+}

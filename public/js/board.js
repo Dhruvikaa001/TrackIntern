@@ -1,7 +1,7 @@
 //Spalten, Karten, Drag-and-Drop
 
 import { STAGES, state, loadApplications, moveApplication, deleteApplication, getVisibleApplication, filters } from "./state.js";
-import { openApplicationDialog, openConfirmDialog } from "./dialog.js";
+import { openApplicationDialog, openConfirmDialog, openDetailDialog } from "./dialog.js";
 import { showToast } from "./toast.js";
 
 export async function renderBoard(container) {
@@ -264,6 +264,15 @@ function renderCard(application, onMove, onReload) {
 
     card.addEventListener('dragend', function (event) {
         card.classList.remove('dragging');
+    });
+
+    // click anywhere on the card opens the details,
+    // except on the buttons and the "Move to" select
+    card.addEventListener('click', function (event) {
+        if (event.target.closest('button, select')) {
+            return;
+        }
+        openDetailDialog(application);
     });
 
     const company_name = document.createElement("strong");

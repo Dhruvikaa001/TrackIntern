@@ -1,9 +1,9 @@
 //alle Anfragen an den Server (fetch)
 
-// MOCK-START (zum Entfernen: diesen Block, den Block in request() und mock.js löschen)
-import { mockRequest } from "./mock.js";
-const USE_MOCK = true; // true = Mock verwenden, false = echte API verwenden
-// MOCK-END
+// // MOCK-START (zum Entfernen: diesen Block, den Block in request() und mock.js löschen)
+// import { mockRequest } from "./mock.js";
+// const USE_MOCK = true; // true = Mock verwenden, false = echte API verwenden
+// // MOCK-END
 
 export class ApiError extends Error {
     constructor(status, message, fieldErrors = null) {
@@ -14,20 +14,7 @@ export class ApiError extends Error {
 }
 
 async function request(method, url, body = null) {
-      
-    
-    // MOCK-START
-    if (USE_MOCK) {
-        const result = await mockRequest(method, url, body);
-        if (result.status >= 400) {
-            const message = result.data?.error || `Request failed (${result.status})`;
-            throw new ApiError(result.status, message, result.data?.fields);
-        }
-        return result.data;
-    }
-    // MOCK-END
 
-    
     const options = {
         method: method,
         credentials: 'same-origin',
@@ -59,7 +46,7 @@ async function request(method, url, body = null) {
     if (!response.ok) {
         throw new ApiError(response.status, data?.error, data?.fields);
     }
-    
+
     return data;
 }
 

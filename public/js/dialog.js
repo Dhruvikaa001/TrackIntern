@@ -1,4 +1,4 @@
-import { STAGES } from "./state.js";
+import { STAGES, loadApplicationDetails, stageLabel } from "./state.js";
 import { get, post, patch } from "./api.js";
 import { showToast } from "./toast.js";
 
@@ -395,4 +395,105 @@ export function openCompanyDialog(onCreated) {
     dialog.addEventListener('close', function () {
         dialog.remove();
     });
+}
+
+export async function openDetailDialog(application) {
+    const dialog = document.createElement('dialog');
+    const article = document.createElement('article');
+
+    const heading = document.createElement('h2');
+    heading.textContent = `${application.company_name}: ${application.role_title}`;
+
+    const content = document.createElement('div');
+    const loading = document.createElement('p');
+    loading.setAttribute('role', 'status');
+    loading.textContent = 'Loading details...'
+    content.append(loading);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Close';
+    closeBtn.addEventListener('click', function () {
+        dialog.close();
+    });
+
+    article.append(heading, content, closeBtn);
+    dialog.append(article);
+    document.querySelector('#modal-root').append(dialog);
+    dialog.showModal();
+    dialog.addEventListener('close', function () {
+        dialog.remove();
+    });
+
+    try {
+        const details = await loadApplicationDetails(application.id);
+        content.replaceChildren(renderDetails(details), renderTimeline(details.history));
+    } catch(error) {
+        const message = document.createElement('p');
+        message.setAttribute('role', 'alert');
+        message.textContent = error.status === 404
+            ? 'This application no longer exists.'
+            : 'Could not load the details. Please try again.';
+        content.replaceChildren(message);
+    }
+}
+
+function renderDetails(details) {
+    const list = document.createElement('dl');
+    const rows = [
+        ['Stage', stageLabel(details.stage)],
+        ['Priority', details.priority],
+        ['Deadline', details.deadline || '-'],
+        ['Notes', details.notes || '-']
+    ];
+    for (const [label, value] of rows) {
+        const dt = document.createElement('dt');
+        dt.textContent = label;
+        const dd = document.createElement('dd');
+        dd.textContent = value;
+        list.append(dt, dd);
+    }
+
+    if (details.link) {
+        const dt = document.createElement('dt');
+        dt.textContent = 'Link';
+        const dd = document.createElement('dd');
+        const a = document.createElement('a');
+        a.href = details.link;
+        a.textContent = details.link;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer'; // the new tab cannot access our page
+        dd.append(a);
+        list.append(dt, dd);
+    }
+    return list;
+}
+
+function renderTimeline(history) {
+    const section = document.createElement('section');
+    const h3 = document.createElement('h3');
+    h3.textContent = 'Timeline';
+
+    const list = document.createElement('ol');
+    list.classList.add('timeline');
+    for (const entry of history) {
+        const item = document.createElement('li');
+
+        const text = document.createElement('span');
+        text.textContent = entry.from_stage === null
+            ? `Added to ${stageLabel(entry.to_stage)}`
+            : `${stageLabel(entry.from_stage)} → ${stageLabel(entry.to_stage)}`;
+
+        const time = document.createElement('time');
+        time.dateTime = entry.changed_at; // machine-readable date for screen readers
+        time.textContent = new Date(entry.changed_at).toLocaleString('en-GB', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        });
+
+        item.append(text, time);
+        list.append(item);
+    }
+    section.append(h3, list);
+    return section;
 }

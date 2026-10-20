@@ -23,7 +23,8 @@ form {
     margin-left: 0.5rem;
     color: #a1230f;
     font-weight: bold;
-    background-color: var(--pico-card-background-color, #fff);;
+    background-color: var(--pico-card-background-color, #fff);
+    ;
 }
 
 .badge-soon {
@@ -104,4 +105,28 @@ form {
 
 .error-banner button {
     margin: 0;
+}
+
+.timeline {
+    padding-left: 1.25rem;
+}
+
+.timeline li {
+    margin-bottom: 0.5rem;
+}
+
+.timeline time {
+    display: block;
+    font-size: 0.85em;
+    color: var(--pico-muted-color);
+}
+
+dialog dt {
+    font-weight: bold;
+}
+
+dialog dd {
+    margin-left: 0;
+    margin-bottom: 0.75rem;
+    white-space: pre-wrap;    /* keeps line breaks in the notes */
 }
