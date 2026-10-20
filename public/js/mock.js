@@ -417,6 +417,23 @@ export async function mockRequest(method, url, body) {
           created_at: x.created_at,
         }))
       );
+
+    }
+
+    if (method === "GET" && path === "/api/admin/companies") {
+      const status = q.get("status");
+      let list = companies;
+      if (status === "pending" || status === "approved") list = list.filter((c) => c.status === status);
+      return ok(
+        list.map((c) => ({
+          id: c.id,
+          name: c.name,
+          industry: c.industry,
+          status: c.status,
+          created_by_username: users.find((x) => x.id === c.created_by)?.username ?? null,
+          app_count: apps.filter((a) => a.company_id === c.id).length,
+        }))
+      );
     }
 
     if (method === "PATCH" && (m = path.match(/^\/api\/admin\/users\/(\d+)$/))) {
