@@ -1,10 +1,8 @@
-main.container {
+/*:has() is for a main that directly contains a form --> only login and register*/
+main:has(> form) {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    max-width: 100%;
 }
 
 form {
@@ -24,7 +22,6 @@ form {
     color: #a1230f;
     font-weight: bold;
     background-color: var(--pico-card-background-color, #fff);
-    ;
 }
 
 .badge-soon {
@@ -79,7 +76,21 @@ form {
     gap: 0.75rem;
     align-items: center;
     margin: 1rem 0;
-    padding: 200px;
+}
+
+/* Pico makes every field 100% wide; in the filter bar they should share one row */
+.filter-bar input,
+.filter-bar select,
+.filter-bar button {
+    flex: 1 1 12rem;
+    width: auto;
+    margin: 0;
+}
+
+.filter-bar label,
+.filter-bar button {
+    flex: 0 0 auto;
+    margin: 0;
 }
 
 .error-banner {
@@ -129,4 +140,41 @@ dialog dd {
     margin-left: 0;
     margin-bottom: 0.75rem;
     white-space: pre-wrap;    /* keeps line breaks in the notes */
+}
+
+/* column headings a bit smaller, so "Online Assessment" fits */
+.column h3 {
+    font-size: 1rem;
+}
+
+/* smaller controls inside the cards, so a card does not get huge */
+.card select,
+.card button {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+    margin: 0.25rem 0.25rem 0 0;
+}
+
+.card select {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* wide admin tables scroll sideways instead of being cut off */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* ---------- small screens (phones, narrow windows) ---------- */
+@media (max-width: 768px) {
+    /* columns below each other instead of six next to each other */
+    .board {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-bar input,
+    .filter-bar select,
+    .filter-bar button {
+        flex-basis: 100%;
+    }
 }

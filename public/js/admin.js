@@ -1,8 +1,7 @@
 // Admin-Ansicht
-
 import { get, patch, del } from './api.js';
 import { showToast } from './toast.js';
-import { openConfirmDialog } from './dialog.js';
+import { openConfirmDialog, openEditCompanyDialog } from './dialog.js';
 
 export async function renderAdmin(container) {
     container.replaceChildren();
@@ -91,7 +90,11 @@ async function renderUsers(userSection, onRetry) {
         }
 
         table.append(thead, tbody);
-        userSection.append(table);
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('table-wrapper');
+        wrapper.append(table);
+        userSection.append(wrapper);
+
     } catch (error) {
         console.error('Error occurred while loading users:', error);
 
@@ -145,10 +148,10 @@ async function renderCompanies(companySection, onRetry) {
             nameCell.textContent = company.name;
 
             const industryCell = document.createElement('td');
-            industryCell.textContent = company.industry ?? '–';
+            industryCell.textContent = company.industry || '-';
 
             const submittedCell = document.createElement('td');
-            submittedCell.textContent = company.created_by_username ?? '–';
+            submittedCell.textContent = company.created_by_username || '-';
 
             const applicationsCell = document.createElement('td');
             applicationsCell.textContent = company.app_count;
@@ -177,6 +180,19 @@ async function renderCompanies(companySection, onRetry) {
                 actionCell.append(approveBtn);
             }
 
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', function () {
+                openEditCompanyDialog(company, (updated) => {
+                    company.name = updated.name;
+                    company.industry = updated.industry;
+                    nameCell.textContent = updated.name;
+                    industryCell.textContent = updated.industry || '–';
+                });
+            });
+            actionCell.append(editBtn);
+
             const deleteBtn = document.createElement('button');
             deleteBtn.type = 'button';
             deleteBtn.textContent = 'Delete';
@@ -194,13 +210,15 @@ async function renderCompanies(companySection, onRetry) {
             actionCell.append(deleteBtn);
 
             row.append(nameCell, industryCell, submittedCell, applicationsCell, statusCell, actionCell);
-
-            row.append(nameCell, industryCell, submittedCell, applicationsCell, statusCell, actionCell);
             tbody.append(row);
         }
 
         table.append(thead, tbody);
-        companySection.append(table);
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('table-wrapper');
+        wrapper.append(table);
+        companySection.append(wrapper);
+
     } catch (error) {
         console.error('Error occurred while loading companies:', error);
 

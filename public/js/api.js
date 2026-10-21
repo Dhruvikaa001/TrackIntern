@@ -44,6 +44,9 @@ async function request(method, url, body = null) {
     }
 
     if (!response.ok) {
+        if (response.status === 401 && !url.startsWith('/api/auth/')) {
+            window.dispatchEvent(new Event('unauthorized'));
+        }
         throw new ApiError(response.status, data?.error, data?.fields);
     }
 

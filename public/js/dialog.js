@@ -568,3 +568,105 @@ function setFieldError(field, errorEl, message) {
         field.removeAttribute('aria-invalid');
     }
 }
+
+export function openEditCompanyDialog(company, onSaved) {
+    const dialog = document.createElement('dialog');
+    const heading = document.createElement('h2');
+    heading.textContent = 'Edit company';
+
+    const form = document.createElement('form');
+    form.noValidate = true;
+
+    const formError = document.createElement('p');
+    formError.setAttribute('role', 'alert');
+
+    const nameLabel = document.createElement('label');
+    nameLabel.htmlFor = 'edit-company-name';
+    nameLabel.textContent = 'Company name:';
+
+    const nameField = document.createElement('input');
+    nameField.id = 'edit-company-name';
+    nameField.name = 'name';
+    nameField.type = 'text';
+    nameField.required = true;
+    nameField.maxLength = 80;
+    nameField.value = company.name;
+
+    const nameError = document.createElement('small');
+    nameError.id = 'edit-company-name-error';
+    nameField.setAttribute('aria-describedby', nameError.id);
+
+    const industryLabel = document.createElement('label');
+    industryLabel.htmlFor = 'edit-company-industry';
+    industryLabel.textContent = 'Industry (optional):';
+
+    const industryField = document.createElement('input');
+    industryField.id = 'edit-company-industry';
+    industryField.name = 'industry';
+    industryField.type = 'text';
+    industryField.maxLength = 100;
+    industryField.value = company.industry ?? '';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', function () {
+        dialog.close();
+    });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'submit';
+    saveBtn.textContent = 'Save';
+
+    form.append(formError, nameLabel, nameField, nameError, industryLabel, industryField, cancelBtn, saveBtn);
+
+    function validateName() {
+        const message = nameField.value.trim().length < 2
+            ? 'Please enter a company name (at least 2 characters).'
+            : '';
+        setFieldError(nameField, nameError, message);
+        return message === '';
+    }
+    nameField.addEventListener('input', validateName);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        formError.textContent = '';
+        if (!validateName()) {
+            nameField.focus();
+            return;
+        }
+
+        saveBtn.disabled = true;
+        try {
+            const updated = await patch(`/api/admin/companies/${company.id}`, {
+                name: nameField.value.trim(),
+                industry: industryField.value.trim() // send '' instead of null: the server turns null into the text "null"
+            });
+            dialog.close();
+            showToast('Company updated');
+            onSaved(updated);
+        } catch (error) {
+            if (error.fieldErrors && error.fieldErrors.name) {
+                setFieldError(nameField, nameError, error.fieldErrors.name); // e.g. 409: name already exists
+                nameField.focus();
+            } else if (error.status === 0) {
+                formError.textContent = 'Network error. Please check your connection.';
+            } else {
+                formError.textContent = error.message || 'An unknown error occurred.';
+            }
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+
+    const article = document.createElement('article');
+    article.append(heading, form);
+    dialog.append(article);
+
+    document.querySelector('#modal-root').append(dialog);
+    dialog.showModal();
+    dialog.addEventListener('close', function () {
+        dialog.remove();
+    });
+}

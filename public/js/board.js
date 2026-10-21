@@ -198,6 +198,9 @@ async function handleDrop(id, newStage, columns, onReload) {
 }
 
 function handleActionError(error, application, rerender) {
+    if (error.status === 401) {
+        return; // main.js already shows the login page
+    }
     if (error.status === 404) {
         state.applications = state.applications.filter((a) => a.id !== application.id);
         rerender();
