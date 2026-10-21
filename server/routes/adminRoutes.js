@@ -36,7 +36,7 @@ router.delete('/companies/:id', (req, res) => {
     if (!changes) return res.status(404).json({ error: 'Company not found' });
     res.status(204).end();
   } catch (e) {
-    if (e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY')
+    if (String(e.code).startsWith('SQLITE_CONSTRAINT'))
       return res.status(409).json({ error: 'Applications still use this company.' });
     throw e;
   }
