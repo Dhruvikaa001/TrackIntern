@@ -560,7 +560,7 @@ function renderTimeline(history) {
 
 // shows or removes the error text under a field;
 // aria-invalid tells screen readers the field is wrong (and Pico draws a red border)
-function setFieldError(field, errorEl, message) {
+export function setFieldError(field, errorEl, message) {
     errorEl.textContent = message;
     if (message) {
         field.setAttribute('aria-invalid', 'true');

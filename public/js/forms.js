@@ -1,6 +1,7 @@
 //Formulare und Validierung
 import { state } from "./state.js";
 import { post } from "./api.js";
+import { setFieldError } from "./dialog.js";
 
 export function renderLogin(container, onLoginSuccess) {
     container.replaceChildren(); // clear the container otherwise the form will be appended multiple times
@@ -29,6 +30,7 @@ export function renderLogin(container, onLoginSuccess) {
 
     const usernameError = document.createElement("small"); //small = automatically styled by pico
     usernameError.id = "login-username-error";
+    usernameInput.setAttribute('aria.describedby', usernameError.id);
 
     form.append(usernameLabel, usernameInput, usernameError);
 
@@ -44,6 +46,8 @@ export function renderLogin(container, onLoginSuccess) {
 
     const passwordError = document.createElement("small");
     passwordError.id = "login-password-error";
+
+    passwordInput.setAttribute("aria-describedby", passwordError.id);
 
     form.append(passwordLabel, passwordInput, passwordError);
 
@@ -63,14 +67,12 @@ export function renderLogin(container, onLoginSuccess) {
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault(); // prevent default form submission
-        usernameError.textContent = "";
-        passwordError.textContent = "";
         formError.textContent = "";
+        setFieldError(usernameInput, usernameError, usernameInput.validity.valueMissing ? "Username is required." : "");
+        setFieldError(passwordInput, passwordError, passwordInput.validity.valueMissing ? "Password is required." : "");
 
         if (!form.checkValidity()) {
-            // Show validation errors
-            usernameError.textContent = usernameInput.validity.valueMissing ? "Username is required." : "";
-            passwordError.textContent = passwordInput.validity.valueMissing ? "Password is required." : "";
+            form.querySelector('[aria-invalid="true"]').focus(); // jump to the first empty field
             return;
         } else {
             submitButton.disabled = true; // Disable the button to prevent multiple submissions
@@ -84,8 +86,8 @@ export function renderLogin(container, onLoginSuccess) {
                 console.log("Login successful:", user);
             } catch (error) {
                 if ((error.status === 400 || error.status === 409) && error.fieldErrors) {
-                    usernameError.textContent = error.fieldErrors.username || "";
-                    passwordError.textContent = error.fieldErrors.password || "";
+                    setFieldError(usernameInput, usernameError, error.fieldErrors.username || "");
+                    setFieldError(passwordInput, passwordError, error.fieldErrors.password || "");
                 } else if (error.status === 0) {
                     formError.textContent = "Network error. Please check your connection.";
                 } else {
@@ -127,6 +129,7 @@ export function renderRegister(container, onRegisterSuccess) {
 
     const usernameError = document.createElement("small"); //small = automatically styled by pico
     usernameError.id = "register-username-error";
+    usernameInput.setAttribute("aria-describedby", usernameError.id);
 
     form.append(usernameLabel, usernameInput, usernameError);
 
@@ -142,6 +145,7 @@ export function renderRegister(container, onRegisterSuccess) {
 
     const passwordError = document.createElement("small");
     passwordError.id = "register-password-error";
+    passwordInput.setAttribute("aria-describedby", passwordError.id);
 
     form.append(passwordLabel, passwordInput, passwordError);
 
@@ -152,31 +156,29 @@ export function renderRegister(container, onRegisterSuccess) {
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault(); // prevent default form submission
-        usernameError.textContent = "";
-        passwordError.textContent = "";
         formError.textContent = "";
-
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
-        let valid = true;
 
+        let usernameMessage = "";
         if (!username) {
-            usernameError.textContent = "Username is required.";
-            valid = false;
+            usernameMessage = "Username is required.";
         } else if (!USERNAME_PATTERN.test(username)) {
-            usernameError.textContent = "Username must be between 3 and 30 characters, numbers and underscore only.";
-            valid = false;
+            usernameMessage = "Username must be 3–30 characters: letters, numbers or underscores only.";
         }
 
+        let passwordMessage = "";
         if (!password) {
-            passwordError.textContent = "Password is required.";
-            valid = false;
+            passwordMessage = "Password is required.";
         } else if (password.length < 8) {
-            passwordError.textContent = "Password must be at least 8 characters.";
-            valid = false;
+            passwordMessage = "Password must be at least 8 characters.";
         }
 
-        if (!valid) {
+        setFieldError(usernameInput, usernameError, usernameMessage);
+        setFieldError(passwordInput, passwordError, passwordMessage);
+
+        if (usernameMessage || passwordMessage) {
+            form.querySelector('[aria-invalid="true"]').focus(); // jump to the first wrong field
             return;
         }
 
@@ -190,14 +192,14 @@ export function renderRegister(container, onRegisterSuccess) {
                 username: username,
                 password: password
             });
-            
+
             state.user = user;
             onRegisterSuccess(); // Call the callback function to handle successful registration
 
         } catch (error) {
             if ((error.status === 400 || error.status === 409) && error.fieldErrors) {
-                usernameError.textContent = error.fieldErrors.username || "";
-                passwordError.textContent = error.fieldErrors.password || "";
+                setFieldError(usernameInput, usernameError, error.fieldErrors.username || "");
+                setFieldError(passwordInput, passwordError, error.fieldErrors.password || "");
             } else if (error.status === 0) {
                 formError.textContent = "Network error. Please check your connection.";
             } else {
