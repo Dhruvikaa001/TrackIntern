@@ -28,10 +28,10 @@ export function showView(name) {
 
 export function showNavigation() {
     document.getElementById("main-nav").hidden = false;
-    if(state.user && state.user.role === "admin") {
-    document.getElementById("nav-admin").hidden = false;
-    } else {
-        document.getElementById("nav-admin").hidden = true;
-    }
-    showView("board"); // Show the board view for admin users
+    // Board and Admin are only needed to switch between the two views,
+    // so only admins see them (the server still checks every permission)
+    const isAdmin = state.user && state.user.role === "admin";
+    document.getElementById("nav-board").hidden = !isAdmin;
+    document.getElementById("nav-admin").hidden = !isAdmin;
+    showView("board"); // start page after login (for every user)
 }
