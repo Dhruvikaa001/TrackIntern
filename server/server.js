@@ -4,6 +4,7 @@ const { authenticate, errorHandler } = require('./middleware');
 
 const app = express();
 app.use(express.json({ limit: '100kb' }));
+app.use((req, res, next) => { req.body ??= {}; next(); });
 app.use(authenticate); // sets req.user (or null) on every request
 app.use(express.static(path.join(__dirname, '..', 'public')));
 

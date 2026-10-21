@@ -18,7 +18,7 @@ router.patch('/companies/:id', (req, res) => {
   const name = req.body.name !== undefined ? String(req.body.name).trim() : c.name;
   const industry = req.body.industry !== undefined ? String(req.body.industry).trim() : c.industry;
   const status = ['pending', 'approved'].includes(req.body.status) ? req.body.status : c.status;
-  if (name.length < 2) return res.status(400).json({ error: 'Validation failed', fields: { name: '2–80 characters' } });
+  if (name.length < 2 || name.length > 80) return res.status(400).json({ error: 'Validation failed', fields: { name: '2–80 characters' } });
   try {
     db.prepare('UPDATE companies SET name = ?, industry = ?, status = ? WHERE id = ?')
       .run(name, industry, status, c.id);
@@ -30,18 +30,6 @@ router.patch('/companies/:id', (req, res) => {
   res.json(db.prepare('SELECT * FROM companies WHERE id = ?').get(c.id));
 });
 
-// Merge a duplicate into the real company, then delete the duplicate
-router.post('/companies/:id/merge', (req, res) => {
-  const from = Number(req.params.id), into = Number(req.body.into_id);
-  if (from === into || !db.prepare('SELECT 1 FROM companies WHERE id = ?').get(into))
-    return res.status(400).json({ error: 'Choose a different, existing company to merge into' });
-  db.transaction(() => {
-    db.prepare('UPDATE applications SET company_id = ? WHERE company_id = ?').run(into, from);
-    db.prepare('DELETE FROM companies WHERE id = ?').run(from);
-  })();
-  res.status(204).end();
-});
-
 router.delete('/companies/:id', (req, res) => {
   try {
     const { changes } = db.prepare('DELETE FROM companies WHERE id = ?').run(req.params.id);
@@ -49,7 +37,7 @@ router.delete('/companies/:id', (req, res) => {
     res.status(204).end();
   } catch (e) {
     if (e.code === 'SQLITE_CONSTRAINT_FOREIGNKEY')
-      return res.status(409).json({ error: 'Applications still use this company. Merge it instead.' });
+      return res.status(409).json({ error: 'Applications still use this company.' });
     throw e;
   }
 });

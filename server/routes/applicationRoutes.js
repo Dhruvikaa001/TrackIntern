@@ -38,15 +38,6 @@ router.get('/', (req, res) => {
   res.json(db.prepare(sql).all(...params));
 });
 
-// STATS (must be defined BEFORE '/:id', or Express treats "stats" as an id)
-router.get('/stats', (req, res) => {
-  const rows = db.prepare(
-    'SELECT stage, COUNT(*) AS n FROM applications WHERE user_id = ? GROUP BY stage').all(req.user.id);
-  const counts = Object.fromEntries(STAGES.map(s => [s, 0]));
-  for (const r of rows) counts[r.stage] = r.n;
-  res.json({ counts, total: rows.reduce((sum, r) => sum + r.n, 0) });
-});
-
 // READ one + its history
 router.get('/:id', (req, res) => {
   const app = getOwned(req.params.id, req.user.id);

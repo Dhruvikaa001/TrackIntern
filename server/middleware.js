@@ -26,6 +26,8 @@ function requireAdmin(req, res, next) {
 }
 
 function errorHandler(err, req, res, next) {
+  if (err.status >= 400 && err.status < 500)   // malformed JSON -> 400, too large -> 413
+    return res.status(err.status).json({ error: 'Invalid request' });
   console.error(err);
   res.status(500).json({ error: 'Something went wrong on the server. Please try again.' });
 }

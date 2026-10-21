@@ -58,15 +58,12 @@ POST   /api/applications   { company_id, role_title, stage?, priority?, deadline
 PATCH  /api/applications/12  { any editable field except stage }  → 200 app
 PATCH  /api/applications/12/stage  { "stage": "interview" }       → 200 app
 DELETE /api/applications/12                        → 204
-GET    /api/applications/stats                     → 200 { "counts": { "applied": 5, ... }, "total": 14 }
 
 **Companies**
 
-GET  /api/companies            → 200 [ { "id": 4, "name": "Grab", "industry": "Tech" }, ... ]  (approved only)
-POST /api/companies  { "name": "Shopee", "industry": "E-commerce", "website": "..." }
+GET  /api/companies            → 200 [ { "id": 4, "name": "Grab", "industry": "Tech" }, ... ]  (approved companies plus the user's own pending ones)
+POST /api/companies  { "name": "Shopee", "industry": "E-commerce" }
                                → 201 { id, name, status: "pending" }  | 409 if name exists
-GET  /api/companies/4/timeline → 200 { "applications": 38, "median_days_to_oa": 9,
-                                      "interview_rate": 0.21 }   (fields null if fewer than 5)
                                       
 **Admin (403 for non-admins)**
 
