@@ -36,7 +36,7 @@ export async function openApplicationDialog(onSaved, application = null) {
             option.textContent = `${company.name} (pending)`;
             companyField.append(option);
             companyField.value = company.id;
-            companyError.textContent = '';
+            setFieldError(companyField, companyError, '');
         });
     });
 
@@ -125,6 +125,12 @@ export async function openApplicationDialog(onSaved, application = null) {
 
     form.append(companyLabel, companyField, companyError, suggestBtn, roleLabel, roleField, roleError, stageLabel, stageField, stageError, priorityLabel, priorityField, priorityError, deadlineLabel, deadlineField, deadlineError, linkLabel, linkField, linkError, notesLabel, notesArea, notesError);
 
+    // connect every field with its error text, so screen readers read the error together with the field
+    for (const [field, errorEl] of [[companyField, companyError], [roleField, roleError], [stageField, stageError], [priorityField, priorityError], [deadlineField, deadlineError], [linkField, linkError], [notesArea, notesError]]) {
+        errorEl.id = `${field.id}-error`;
+        field.setAttribute('aria-describedby', errorEl.id);
+    }
+
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = 'Cancel';
     cancelBtn.type = 'button';
@@ -141,6 +147,62 @@ export async function openApplicationDialog(onSaved, application = null) {
     const formError = document.createElement('p');
     formError.setAttribute('role', 'alert');
     form.prepend(formError);
+
+    function validateCompany() {
+        // in edit mode the company cannot be changed, so there is nothing to check
+        const message = application || companyField.value ? '' : 'Please choose a company.';
+        setFieldError(companyField, companyError, message);
+        return message === '';
+    }
+
+    function validateRole() {
+        const value = roleField.value.trim();
+        let message = '';
+        if (!value) {
+            message = 'Role title is required.';
+        } else if (value.length > 100) {
+            message = 'Role title can be at most 100 characters.';
+        }
+        setFieldError(roleField, roleError, message);
+        return message === '';
+    }
+
+    function validateDeadline() {
+        // badInput = the user started typing a date but it is not complete/valid
+        const message = deadlineField.validity.badInput ? 'Please enter a complete date.' : '';
+        setFieldError(deadlineField, deadlineError, message);
+        return message === '';
+    }
+
+    function validateLink() {
+        const value = linkField.value.trim();
+        let message = '';
+        if (value) {
+            try {
+                const url = new URL(value);
+                if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                    message = 'The link must start with http:// or https://';
+                }
+            } catch {
+                message = 'Please enter a valid link, e.g. https://example.com';
+            }
+        }
+        setFieldError(linkField, linkError, message);
+        return message === '';
+    }
+
+    // live validation
+    companyField.addEventListener('change', validateCompany);
+    roleField.addEventListener('input', validateRole);
+    deadlineField.addEventListener('change', validateDeadline);
+    // a link is "invalid" while you are still typing it, so check it when leaving the field ...
+    linkField.addEventListener('blur', validateLink);
+    // ... but remove the error as soon as it is fixed
+    linkField.addEventListener('input', function () {
+        if (linkField.getAttribute('aria-invalid') === 'true') {
+            validateLink();
+        }
+    });
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -166,20 +228,14 @@ export async function openApplicationDialog(onSaved, application = null) {
         };
 
         formError.textContent = '';
-        for (const el of Object.values(errorFields)) {
-            el.textContent = '';
+        for (const [name, el] of Object.entries(errorFields)) {
+            setFieldError(form.elements[name], el, '');
         }
 
-        let valid = true;
-        if (!body.company_id) {
-            companyError.textContent = 'Please choose a company.';
-            valid = false;
-        }
-        if (!body.role_title) {
-            roleError.textContent = 'Role title is required.';
-            valid = false;
-        }
-        if (!valid) {
+        // run all checks, so every error is shown at once
+        const results = [validateCompany(), validateRole(), validateDeadline(), validateLink()];
+        if (results.includes(false)) {
+            form.querySelector('[aria-invalid="true"]').focus(); // jump to the first wrong field
             return;
         }
 
@@ -198,8 +254,12 @@ export async function openApplicationDialog(onSaved, application = null) {
             onSaved();
         } catch (error) {
             if (error.fieldErrors) {
-                for (const [field, message] of Object.entries(error.fieldErrors)) {
-                    (errorFields[field] || formError).textContent = message;
+                for (const [name, message] of Object.entries(error.fieldErrors)) {
+                    if (errorFields[name]) {
+                        setFieldError(form.elements[name], errorFields[name], message);
+                    } else {
+                        formError.textContent = message;
+                    }
                 }
             } else if (error.status === 0) {
                 formError.textContent = 'Network error. Please check your connection.';
@@ -428,7 +488,7 @@ export async function openDetailDialog(application) {
     try {
         const details = await loadApplicationDetails(application.id);
         content.replaceChildren(renderDetails(details), renderTimeline(details.history));
-    } catch(error) {
+    } catch (error) {
         const message = document.createElement('p');
         message.setAttribute('role', 'alert');
         message.textContent = error.status === 404
@@ -496,4 +556,15 @@ function renderTimeline(history) {
     }
     section.append(h3, list);
     return section;
+}
+
+// shows or removes the error text under a field;
+// aria-invalid tells screen readers the field is wrong (and Pico draws a red border)
+function setFieldError(field, errorEl, message) {
+    errorEl.textContent = message;
+    if (message) {
+        field.setAttribute('aria-invalid', 'true');
+    } else {
+        field.removeAttribute('aria-invalid');
+    }
 }

@@ -42,8 +42,7 @@ export async function renderBoard(container) {
 
     const sortSelect = document.createElement('select');
     sortSelect.setAttribute('aria-label', 'Sort by');
-    for (const [value, label] of [['default', 'Sort: Default'], ['deadline', 'Sort: Deadline'], ['company', 'Sort: Company']]) {
-        const option = document.createElement('option');
+    for (const [value, label] of [['default', 'Sort: Default'], ['deadline', 'Sort: Deadline'], ['updated', 'Sort: Last updated'], ['company', 'Sort: Company']]) {        const option = document.createElement('option');
         option.value = value;
         option.textContent = label;
         sortSelect.append(option);
@@ -332,6 +331,15 @@ function renderCard(application, onMove, onReload) {
             handleActionError(error, application, onMove);
         }
     });
+
+    // keyboard users cannot "click a card", so they need a real button
+    const detailsBtn = document.createElement('button');
+    detailsBtn.type = 'button';
+    detailsBtn.textContent = 'Details';
+    detailsBtn.addEventListener('click', function () {
+        openDetailDialog(application);
+    });
+    card.append(detailsBtn);
 
     const editBtn = document.createElement('button');
     editBtn.type = 'button';

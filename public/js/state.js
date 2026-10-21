@@ -29,11 +29,18 @@ export function getVisibleApplication() {
     if (filters.priority !== '') {
         list = list.filter((a) => a.priority === filters.priority);
     }
-    //sort by deadline or company name
+    //sort by deadline     
     if (filters.sort === 'deadline') {
         list.sort((a, b) => (a.deadline || '9999-12-31').localeCompare(b.deadline || '9999-12-31'));
+
+        //sort by company name
     } else if (filters.sort === 'company') {
         list.sort((a, b) => a.company_name.localeCompare(b.company_name));
+
+        //sorted by last updated
+    } else if (filters.sort === 'updated') {
+        // newest first; ISO timestamps can be compared as strings
+        list.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
     }
 
     return list;
